@@ -1,4 +1,7 @@
 #include "systemcalls.h"
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdlib.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -16,8 +19,7 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
-
-    return true;
+    return system( cmd );
 }
 
 /**
@@ -47,7 +49,7 @@ bool do_exec(int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+    //command[count] = command[count];
 
 /*
  * TODO:
@@ -58,7 +60,37 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    char * data[3];
+    data[0] = command[ 1 ];
+    data[1] = command[ 0 ];
+    data[2] = NULL;
 
+    
+    fflush(stdout); 
+
+    if (command[count-1][0] != '/' ) return false;
+
+    int ret = fork();
+
+    if (ret == 0)
+    {
+        // child process.
+        //printf("%s ", command[2]);
+        //printf("Lozaaaa %s ", command[count]);
+        //printf("%c \n", command[count - 1][0]);
+        
+        return execv( command[count - 1] , data ) == -1 ? false : true;
+    }
+    else if (ret > 0)
+    {
+        // parent process.
+        waitpid(ret, NULL , WNOHANG);
+    }
+    else
+    {
+        // failure.
+        return false;
+    }
     va_end(args);
 
     return true;
@@ -82,7 +114,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
     // and may be removed
-    command[count] = command[count];
+    //command[count] = command[count];
 
 
 /*
